@@ -1,0 +1,8 @@
+{
+    "name": "$NAME",
+    "filename": "$DOMAIN.zip",
+    "hide_default_branch": true,
+    "homeassistant": "2024.7.1",
+    "render_readme": true,
+    "zip_release": true
+}
