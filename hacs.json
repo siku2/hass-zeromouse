@@ -1,8 +1,8 @@
 {
-    "name": "$NAME",
-    "filename": "$DOMAIN.zip",
+    "name": "ZeroMOUSE",
+    "filename": "zeromouse.zip",
     "hide_default_branch": true,
-    "homeassistant": "2024.7.1",
+    "homeassistant": "2024.10.4",
     "render_readme": true,
     "zip_release": true
 }
