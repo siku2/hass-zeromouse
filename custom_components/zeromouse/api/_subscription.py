@@ -1,5 +1,5 @@
+import asyncio
 import base64
-import dataclasses
 import json
 import logging
 import uuid
@@ -8,101 +8,22 @@ from typing import Any, Self
 
 import websockets.asyncio.client as ws_client
 import websockets.exceptions
-from pycognito import Cognito, UserObj
 from websockets.typing import Subprotocol
+
+from ._consts import APPSYNC_API_KEY, APPSYNC_HOST, APPSYNC_REALTIME_HOST
 
 _LOGGER = logging.getLogger(__name__)
 
-_APPSYNC_HOST = "f36gc6o7jnewxe37dhn3fochza.appsync-api.eu-central-1.amazonaws.com"
-_GRAPHQL_BASE_URL = f"https://{_APPSYNC_HOST}/graphql"
-_APPSYNC_REALTIME_HOST = _APPSYNC_HOST.replace("appsync-api", "appsync-realtime-api")
 
-_USER_POOL_ID = "eu-central-1_LS6CKN0t1"
-_CLIENT_ID = "7pdec0rbivg5hg8u3pke4veg0f"
-_API_KEY = "da2-r5hq3osgpbdmtd6nx67tvlyxum"
-
-_USER_ATTR_CAT_ENTERED = "custom:ntf_CAT_ENTERED"
-_USER_ATTR_CAT_ENTRY_DENIED = "custom:ntf_CAT_ENTRY_DENIED"
-
-
-@dataclasses.dataclass(kw_only=True, frozen=True)
-class NotificationSettings:
-    cat_entered: bool
-    cat_entry_denied: bool
-
-    @classmethod
-    def from_user_obj(cls, user: UserObj) -> Self:
-        return cls(
-            cat_entered=getattr(user, _USER_ATTR_CAT_ENTERED) == "1",
-            cat_entry_denied=getattr(user, _USER_ATTR_CAT_ENTRY_DENIED) == "1",
-        )
-
-
-class _Api:
-    def __init__(self, cognito: Cognito) -> None:
-        self._loop = asyncio.get_event_loop()
-        self._cognito = cognito
-
-    @classmethod
-    async def login(cls, username: str, password: str) -> Self:
-        loop = asyncio.get_event_loop()
-        cognito = Cognito(
-            _USER_POOL_ID,
-            _CLIENT_ID,
-            username=username,
-        )
-        await loop.run_in_executor(
-            None,
-            cognito.authenticate,  # type: ignore
-            password,
-        )
-        return cls(cognito)
-
-    def store_credentials(self) -> dict[str, str]:
-        assert isinstance(self._cognito.id_token, str)  # type: ignore
-        assert isinstance(self._cognito.refresh_token, str)  # type: ignore
-        assert isinstance(self._cognito.access_token, str)  # type: ignore
-        return {
-            "id_token": self._cognito.id_token,
-            "refresh_token": self._cognito.refresh_token,
-            "access_token": self._cognito.access_token,
-        }
-
-    @classmethod
-    async def from_stored_credentials(cls, credentials: dict[str, str]) -> Self:
-        cognito = Cognito(
-            _USER_POOL_ID,
-            _CLIENT_ID,
-            **credentials,
-        )
-        this = cls(cognito)
-        await this._update_access_token()
-        return this
-
-    async def _update_access_token(self) -> None:
-        await self._loop.run_in_executor(None, self._cognito.check_token)
-
-    async def _get_user(self) -> UserObj:
-        await self._update_access_token()
-        return await self._loop.run_in_executor(
-            None,
-            self._cognito.get_user,  # type: ignore
-        )
-
-    async def get_notification_settings(self) -> NotificationSettings:
-        user = await self._get_user()
-        return NotificationSettings.from_user_obj(user)
-
-
-class _Subscription:
+class Subscription:
     """Subscriptions don't do anything yet."""
 
     def __init__(self) -> None:
         url = _build_appsync_realtime_url(
-            _APPSYNC_REALTIME_HOST,
+            APPSYNC_REALTIME_HOST,
             {
-                "host": _APPSYNC_HOST,
-                "x-api-key": _API_KEY,
+                "host": APPSYNC_HOST,
+                "x-api-key": APPSYNC_API_KEY,
             },
             {},
         )
@@ -142,7 +63,10 @@ class _Subscription:
             payload={
                 "data": query,
                 "extensions": {
-                    "authorization": {"host": _APPSYNC_HOST, "x-api-key": _API_KEY}
+                    "authorization": {
+                        "host": APPSYNC_HOST,
+                        "x-api-key": APPSYNC_API_KEY,
+                    }
                 },
             },
         )
@@ -201,5 +125,3 @@ def _build_appsync_realtime_url(
         return base64.urlsafe_b64encode(json.dumps(obj).encode()).decode()
 
     return f"wss://{host}/graphql?header={_encode(header)}&payload={_encode(payload)}"
-
-
