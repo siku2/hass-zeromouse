@@ -17,6 +17,7 @@
     "loggers": [],
     "mqtt": [],
     "requirements": [
+        "httpx",
         "pycognito",
         "websockets"
     ],
