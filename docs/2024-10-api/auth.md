@@ -22,6 +22,8 @@ user-agent: okhttp/4.9.2
 ## Relevant values
 
 ```yaml
-user_pool_id: "eu-central-1:2b2f7d40-d6f9-474e-a06b-6441c4059601"
+identity_pool_id: "eu-central-1:2b2f7d40-d6f9-474e-a06b-6441c4059601"
+user_pool_id: eu-central-1_LS6CKN0t1
 client_id: 7pdec0rbivg5hg8u3pke4veg0f
+aws_appsync_api_key: da2-r5hq3osgpbdmtd6nx67tvlyxum
 ```

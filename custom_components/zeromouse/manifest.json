@@ -16,7 +16,10 @@
     "issue_tracker": "https://github.com/siku2/hass-zeromouse/issues",
     "loggers": [],
     "mqtt": [],
-    "requirements": [],
+    "requirements": [
+        "pycognito",
+        "websockets"
+    ],
     "ssdp": [],
     "usb": [],
     "version": "0.0.0",
