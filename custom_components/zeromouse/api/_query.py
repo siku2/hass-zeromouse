@@ -87,7 +87,7 @@ def list_mbr_ptf_event_data_with_images(
     limit: int,
     next_token: str | None,
     owner_id: str,
-    sort_direction: Literal["DESC"],
+    sort_direction: Literal["ASC", "DESC"],
     show_deleted: bool = False,
     show_hidden: bool = False,
 ) -> dict[str, Any]:
@@ -102,5 +102,88 @@ def list_mbr_ptf_event_data_with_images(
                 "isDeleted": {"eq": int(show_deleted)},
                 "isHidden": {"eq": int(show_hidden)},
             },
+        },
+    }
+
+
+@dataclasses.dataclass(frozen=True)
+class MbrPtfFlap:
+    device_id: str
+    name: str
+    model: str
+    network_name: str
+    owner_id: str
+    ver_hardware: str | None
+    ver_major: str
+    ver_minor: str
+    ver_revision: str
+    boot_count: int
+    event_count: int
+    created_at: str
+    updated_at: str
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> Self:
+        return cls(
+            device_id=data["deviceID"],
+            name=data["name"],
+            model=data["model"],
+            network_name=data["networkName"],
+            owner_id=data["ownerID"],
+            ver_hardware=data.get("verHardware"),
+            ver_major=data["verMajor"],
+            ver_minor=data["verMinor"],
+            ver_revision=data["verRevision"],
+            boot_count=data["bootCount"],
+            event_count=data["eventCount"],
+            created_at=data["createdAt"],
+            updated_at=data["updatedAt"],
+        )
+
+
+_LIST_MBR_PTF_FLAP_DATA = """
+query ListMbrPtfFlapData($deviceID: ID, $filter: ModelMbrPtfFlapDataFilterInput, $limit: Int, $nextToken: String, $sortDirection: ModelSortDirection) {
+  listMbrPtfFlapData(
+    deviceID: $deviceID
+    filter: $filter
+    limit: $limit
+    nextToken: $nextToken
+    sortDirection: $sortDirection
+  ) {
+    items {
+      deviceID
+      name
+      model
+      networkName
+      ownerID
+      verHardware
+      verMajor
+      verMinor
+      verRevision
+      bootCount
+      eventCount
+      createdAt
+      updatedAt
+    }
+    nextToken
+  }
+}
+"""
+
+
+def list_mbr_ptf_flap_data(
+    *,
+    device_id: str | None,
+    limit: int,
+    next_token: str | None,
+    sort_direction: Literal["ASC", "DESC"],
+) -> dict[str, Any]:
+    return {
+        "query": _LIST_MBR_PTF_FLAP_DATA,
+        "variables": {
+            "deviceID": device_id,
+            "limit": limit,
+            "nextToken": next_token,
+            "sortDirection": sort_direction,
         },
     }

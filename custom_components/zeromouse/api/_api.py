@@ -14,7 +14,12 @@ from ._consts import (
     USER_ATTR_CAT_ENTRY_DENIED,
     USER_POOL_ID,
 )
-from ._query import MbrPtfEvent, list_mbr_ptf_event_data_with_images
+from ._query import (
+    MbrPtfEvent,
+    list_mbr_ptf_event_data_with_images,
+    MbrPtfFlap,
+    list_mbr_ptf_flap_data,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -140,6 +145,23 @@ class Api:
         if "errors" in body:
             raise GraphqlRequestError(body["errors"])
         return body["data"]
+
+    async def list_mbr_flaps(self) -> list[MbrPtfFlap]:
+        query = list_mbr_ptf_flap_data(
+            device_id=None,
+            next_token=None,
+            limit=20,
+            sort_direction="DESC",
+        )
+        data = await self._graphql_request(query)
+        try:
+            return [
+                MbrPtfFlap.from_dict(item)
+                for item in data["listMbrPtfFlapData"]["items"]
+            ]
+        except Exception:
+            _LOGGER.error("failed to parse response: %s", data)
+            raise
 
     async def list_mbr_ptf_events(self, owner_id: str) -> list[MbrPtfEvent]:
         query = list_mbr_ptf_event_data_with_images(

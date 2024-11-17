@@ -12,9 +12,13 @@
     "documentation": "https://github.com/siku2/hass-zeromouse",
     "homekit": {},
     "integration_type": "device",
-    "iot_class": "local_polling",
+    "iot_class": "cloud_polling",
     "issue_tracker": "https://github.com/siku2/hass-zeromouse/issues",
-    "loggers": [],
+    "loggers": [
+        "boto3",
+        "httpx",
+        "pycognito"
+    ],
     "mqtt": [],
     "requirements": [
         "httpx",
