@@ -1,1 +1,20 @@
-{}
+{
+    "config": {
+        "step": {
+            "user": {
+                "title": "Add your ZeroMouse account",
+                "description": "ZeroMouse doesn't provide a proper API (yet) so we use your credentials to create an access token. Your credentials are NOT stored.",
+                "data": {
+                    "username": "Email",
+                    "password": "Password"
+                }
+            }
+        },
+        "error": {
+            "invalid_credentials": "Failed to login with the provided credentials"
+        },
+        "abort": {
+            "already_configured": "ZeroMouse account is already configured"
+        }
+    }
+}

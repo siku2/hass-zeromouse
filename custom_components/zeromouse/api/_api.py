@@ -1,4 +1,5 @@
 import asyncio
+from collections.abc import Mapping
 import dataclasses
 import logging
 from typing import Any, Self
@@ -31,29 +32,69 @@ class NotificationSettings:
         )
 
 
-class GraphqlRequestError(Exception): ...
+class ApiError(Exception): ...
+
+
+class AuthError(ApiError): ...
+
+
+class GraphqlRequestError(ApiError): ...
 
 
 class Api:
-    def __init__(self, cognito: Cognito) -> None:
+    def __init__(
+        self, cognito: Cognito, *, httpx_client: httpx.AsyncClient | None = None
+    ) -> None:
         self._loop = asyncio.get_event_loop()
         self._cognito = cognito
-        self._client = httpx.AsyncClient()
+        self._client = httpx_client or httpx.AsyncClient()
 
     @classmethod
-    async def login(cls, username: str, password: str) -> Self:
+    async def login(
+        cls,
+        username: str,
+        password: str,
+        *,
+        httpx_client: httpx.AsyncClient | None = None,
+    ) -> Self:
+        def blocking() -> Cognito:
+            cognito = Cognito(
+                USER_POOL_ID,
+                CLIENT_ID,
+                username=username,
+            )
+            cognito.authenticate(password)  # type: ignore
+            return cognito
+
         loop = asyncio.get_event_loop()
-        cognito = Cognito(
-            USER_POOL_ID,
-            CLIENT_ID,
-            username=username,
-        )
-        await loop.run_in_executor(
+        cognito = await loop.run_in_executor(
             None,
-            cognito.authenticate,  # type: ignore
-            password,
+            blocking,
         )
-        return cls(cognito)
+        return cls(cognito, httpx_client=httpx_client)
+
+    @classmethod
+    async def from_stored_credentials(
+        cls,
+        credentials: Mapping[str, str],
+        *,
+        httpx_client: httpx.AsyncClient | None = None,
+    ) -> Self:
+        def blocking() -> Cognito:
+            cognito = Cognito(
+                USER_POOL_ID,
+                CLIENT_ID,
+                **credentials,
+            )
+            cognito.check_token()
+            return cognito
+
+        loop = asyncio.get_event_loop()
+        cognito = await loop.run_in_executor(
+            None,
+            blocking,
+        )
+        return cls(cognito, httpx_client=httpx_client)
 
     def store_credentials(self) -> dict[str, str]:
         assert isinstance(self._cognito.id_token, str)  # type: ignore
@@ -65,19 +106,11 @@ class Api:
             "access_token": self._cognito.access_token,
         }
 
-    @classmethod
-    async def from_stored_credentials(cls, credentials: dict[str, str]) -> Self:
-        cognito = Cognito(
-            USER_POOL_ID,
-            CLIENT_ID,
-            **credentials,
-        )
-        this = cls(cognito)
-        await this._update_access_token()
-        return this
-
     async def _update_access_token(self) -> str:
-        await self._loop.run_in_executor(None, self._cognito.check_token)
+        try:
+            await self._loop.run_in_executor(None, self._cognito.check_token)
+        except Exception as err:
+            raise AuthError("failed to refresh access token") from err
         return self._cognito.access_token  # type: ignore
 
     async def _get_user(self) -> UserObj:
