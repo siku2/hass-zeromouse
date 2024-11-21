@@ -1,7 +1,7 @@
 colorlog==6.8.2
 homeassistant==2024.10.4
 httpx==0.27.2
-pip>=24.1.2,<24.3
+pip>=24.1.2,<24.4
 pycognito==2024.5.1
 ruff==0.7.1
 websockets==14.1
