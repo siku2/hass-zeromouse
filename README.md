@@ -1,5 +1,15 @@
 # ZeroMOUSE Home Assistant Integration
 
+> [!IMPORTANT]
+>
+> This repository only holds my investigation into the ZeroMOUSE API back in 2024: [docs/2024-10-api](https://github.com/siku2/hass-zeromouse/tree/main/docs/2024-10-api).
+> I never ended up writing the full integration due to other projects coming up.
+>
+> Now in 2026 I no longer have a need for this project because I've replaced the firmware on the ZeroMOUSE device with my own esphome-based one.
+> All my work is public so if you're interested and know where to look you will find it, but I'm not going to advertise it loudly just yet.
+>
+> If you want the cloud integration approach consider some other projects (I haven't tested any of them so don't take this as an endorsement). You can find here: https://github.com/topics/zeromouse
+
 [![GitHub Release](https://img.shields.io/github/release/siku2/hass-zeromouse.svg?style=flat-square)](https://github.com/siku2/hass-zeromouse/releases)
 [![HACS](https://img.shields.io/badge/HACS-Custom-orange.svg?style=flat-square)](https://hacs.xyz/docs/faq/custom_repositories)
 
